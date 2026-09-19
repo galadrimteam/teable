@@ -1,4 +1,4 @@
-import { DbFieldType } from '@teable/core';
+import { DateFormattingPreset, DbFieldType, TimeFormatting } from '@teable/core';
 import type { Knex } from 'knex';
 import { describe, expect, it } from 'vitest';
 import { PgRecordQueryDialect } from './pg-record-query-dialect';
@@ -61,5 +61,36 @@ describe('PgRecordQueryDialect#coerceToNumericForCompare', () => {
     expect(sql).toContain('THEN NULLIF(');
     expect(sql).toContain('::numeric');
     expect(sql).toContain('ELSE NULL');
+  });
+});
+
+describe('PgRecordQueryDialect#formatDate', () => {
+  const dateColumn = '"main"."Date"';
+  const dialect = new PgRecordQueryDialect({} as unknown as Knex);
+
+  it('keeps the numeric presets', () => {
+    const sql = dialect.formatDate(dateColumn, {
+      date: DateFormattingPreset.European,
+      time: TimeFormatting.None,
+      timeZone: 'Europe/Paris',
+    });
+    expect(sql).toContain("'FMDD/FMMM/YYYY'");
+  });
+
+  it('renders month names for the long presets', () => {
+    const longDMY = dialect.formatDate(dateColumn, {
+      date: DateFormattingPreset.LongDMY,
+      time: TimeFormatting.Hour24,
+      timeZone: 'Europe/Paris',
+    });
+    expect(longDMY).toContain("'FMDD TMMonth YYYY HH24:MI'");
+    expect(longDMY).toContain("'Europe/Paris'");
+
+    const longMDY = dialect.formatDate(dateColumn, {
+      date: DateFormattingPreset.LongMDY,
+      time: TimeFormatting.None,
+      timeZone: 'UTC',
+    });
+    expect(longMDY).toContain("'TMMonth FMDD, YYYY'");
   });
 });

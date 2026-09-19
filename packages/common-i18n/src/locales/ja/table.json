@@ -114,6 +114,8 @@
         "day": "日",
         "local": "地域",
         "friendly": "友好的",
+        "long": "長い形式",
+        "longMonthFirst": "長い形式（月が先）",
         "us": "アメリカ合衆国S",
         "european": "ヨーロッパ",
         "asia": "アジア",

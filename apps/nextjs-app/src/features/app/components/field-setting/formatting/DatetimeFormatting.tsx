@@ -1,5 +1,5 @@
 import type { IDatetimeFormatting } from '@teable/core';
-import { DateFormattingPreset, TimeFormatting } from '@teable/core';
+import { DateFormattingPreset, TimeFormatting, resolveDateLocale } from '@teable/core';
 import { cn, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@teable/ui-lib';
 import { Label } from '@teable/ui-lib/shadcn/ui/label';
 import dayjs from 'dayjs';
@@ -64,18 +64,24 @@ const useSelectInfoMap = (currentDateFormatting: string) => {
 
   const optionsWithExample = (text: string, formatting: string) => {
     return {
-      text: `${text} (${dayjs().format(formatting)})`,
+      // month names in the UI language, like the cells
+      text: `${text} (${dayjs().locale(resolveDateLocale(i18n.language)).format(formatting)})`,
       value: formatting,
     };
   };
 
   const dateFormattingPresetOptions = [
     optionsWithExample(t('table:field.default.date.local'), localDateFormatting),
+    optionsWithExample(t('table:field.default.date.long'), DateFormattingPreset.LongDMY),
+    optionsWithExample(t('table:field.default.date.longMonthFirst'), DateFormattingPreset.LongMDY),
     optionsWithExample(t('table:field.default.date.friendly'), friendlyDateFormatting),
     optionsWithExample(t('table:field.default.date.us'), DateFormattingPreset.US),
     optionsWithExample(t('table:field.default.date.european'), DateFormattingPreset.European),
     optionsWithExample(t('table:field.default.date.asia'), DateFormattingPreset.Asian),
-  ];
+  ].filter(
+    // "friendly" is the same string as a long preset in some languages (en, en-GB): one entry per value
+    (option, index, all) => all.findIndex((o) => o.value === option.value) === index
+  );
   if (localDateFormatting !== DateFormattingPreset.ISO) {
     dateFormattingPresetOptions.push(optionsWithExample('ISO', DateFormattingPreset.ISO));
   }

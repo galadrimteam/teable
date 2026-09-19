@@ -114,6 +114,8 @@
         "day": "Jour",
         "local": "Local",
         "friendly": "Amical",
+        "long": "Longue",
+        "longMonthFirst": "Longue, mois en premier",
         "us": "US",
         "european": "Européen",
         "asia": "Asie",

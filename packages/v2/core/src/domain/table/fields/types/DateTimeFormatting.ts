@@ -16,6 +16,8 @@ export const DateFormattingPreset = {
   Y: 'YYYY',
   M: 'MM',
   D: 'DD',
+  LongDMY: 'D MMMM YYYY',
+  LongMDY: 'MMMM D, YYYY',
 } as const;
 
 export type DateFormattingPreset = (typeof DateFormattingPreset)[keyof typeof DateFormattingPreset];

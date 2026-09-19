@@ -6,7 +6,13 @@ import { z } from 'zod';
 import type { FieldType, CellValueType } from '../constant';
 import { FieldCore } from '../field';
 import type { IFieldVisitor } from '../field-visitor.interface';
-import { TimeFormatting, defaultDatetimeFormatting, formatDateToString } from '../formatting';
+import {
+  TimeFormatting,
+  defaultDatetimeFormatting,
+  formatDateToString,
+  isLongDateFormatting,
+  parseLongDateString,
+} from '../formatting';
 import type { IDateFieldOptions } from './date-option.schema';
 import { dateFieldOptionsSchema } from './date-option.schema';
 
@@ -68,6 +74,13 @@ export class DateFieldCore extends FieldCore {
     const format = timeFormat ? `${dateFormat} ${timeFormat}` : dateFormat;
 
     try {
+      if (isLongDateFormatting(dateFormat)) {
+        // month names: parsed per locale (UI language, then fr, then en), then placed in the field's time zone
+        const wallClock = parseLongDateString(value, [format]);
+        if (!wallClock) return null;
+        const zoned = dayjs.tz(wallClock, 'YYYY-MM-DD HH:mm', formatting.timeZone);
+        return zoned.isValid() ? zoned.toISOString() : null;
+      }
       const check = dayjs(value, format, true).isValid();
       if (!check) return null;
       const formatValue = dayjs.tz(value, format, formatting.timeZone);

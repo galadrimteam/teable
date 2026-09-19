@@ -152,6 +152,8 @@
         "day": "Day",
         "local": "Local",
         "friendly": "Friendly",
+        "long": "Long",
+        "longMonthFirst": "Long, month first",
         "us": "US",
         "european": "European",
         "asia": "Asia",

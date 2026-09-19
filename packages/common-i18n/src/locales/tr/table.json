@@ -116,6 +116,8 @@
         "day": "Gün",
         "local": "Yerel",
         "friendly": "Kullanıcı Dostu",
+        "long": "Uzun",
+        "longMonthFirst": "Uzun, önce ay",
         "us": "ABD",
         "european": "Avrupa",
         "asia": "Asya",

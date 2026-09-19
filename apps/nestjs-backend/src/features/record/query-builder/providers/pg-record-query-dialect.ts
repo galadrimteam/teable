@@ -189,6 +189,12 @@ export class PgRecordQueryDialect implements IRecordQueryDialectProvider {
         return 'MM';
       case DateFormattingPreset.D:
         return 'DD';
+      // Long presets. TM = month name in the database's lc_time; a stock postgres image only has the C locale,
+      // so SQL-side text (formulas that turn a date into a string) gets English month names.
+      case DateFormattingPreset.LongDMY:
+        return 'FMDD TMMonth YYYY';
+      case DateFormattingPreset.LongMDY:
+        return 'TMMonth FMDD, YYYY';
       default:
         return 'YYYY-MM-DD';
     }

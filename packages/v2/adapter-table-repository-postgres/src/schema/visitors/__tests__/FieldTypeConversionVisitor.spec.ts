@@ -1168,6 +1168,22 @@ describe('FieldTypeConversionVisitor', () => {
       expect(migrateSql).not.toContain('HH');
     });
 
+    it('should map month names of the long date presets', () => {
+      const textField = mkTextField();
+      const longDMY = getConversionSqls(
+        mkFormulaDateTimeField(DateFormattingPreset.LongDMY, TimeFormatting.Hour24, 'Europe/Paris'),
+        textField
+      ).find((s) => s.includes('to_char'))!;
+      // 'D MMMM YYYY HH:mm' → 'FMDD TMMonth YYYY HH24:MI' (not 'MMMM', which postgres reads as the month number twice)
+      expect(longDMY).toContain('FMDD TMMonth YYYY HH24:MI');
+
+      const longMDY = getConversionSqls(
+        mkFormulaDateTimeField(DateFormattingPreset.LongMDY, TimeFormatting.None, 'UTC'),
+        textField
+      ).find((s) => s.includes('to_char'))!;
+      expect(longMDY).toContain('TMMonth FMDD, YYYY');
+    });
+
     it('should use text cast for string formula → text', () => {
       const formulaField = mkFormulaStringField();
       const textField = mkTextField();

@@ -152,6 +152,8 @@
         "day": "日",
         "local": "本地",
         "friendly": "语义化",
+        "long": "长日期",
+        "longMonthFirst": "长日期（月在前）",
         "us": "美国",
         "european": "欧洲",
         "asia": "亚洲",

@@ -431,10 +431,13 @@ const dayjsFormatToPostgres = (dayjsFmt: string): string => {
   // Replace tokens from longest to shortest to avoid partial matches.
   // We use a single-pass replacement via alternation to prevent interference.
   return dayjsFmt.replace(
-    /YYYY|MM|DD|HH|hh|mm|[MDA]/g,
+    /YYYY|MMMM|MMM|MM|DD|HH|hh|mm|[MDA]/g,
     (match) =>
       ({
         YYYY: 'YYYY',
+        // month names (long date presets); TM = lc_time of the database, English with the C locale
+        MMMM: 'TMMonth',
+        MMM: 'TMMon',
         MM: 'MM',
         DD: 'DD',
         HH: 'HH24',

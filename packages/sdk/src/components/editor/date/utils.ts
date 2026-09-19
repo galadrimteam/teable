@@ -1,5 +1,11 @@
 import type { IDatetimeFormatting } from '@teable/core';
-import { formatDateToString, normalizeDateFormatting, TimeFormatting } from '@teable/core';
+import {
+  formatDateToString,
+  isLongDateFormatting,
+  normalizeDateFormatting,
+  parseLongDateString,
+  TimeFormatting,
+} from '@teable/core';
 import { fromZonedTime } from 'date-fns-tz';
 import dayjs from 'dayjs';
 
@@ -18,7 +24,15 @@ export const convertZonedInputToUtc = (inputValue: string, formatting: IDatetime
   const formats = isTimeNone
     ? [normalizedDateFormatting]
     : [`${normalizedDateFormatting} ${timeFormatting}`, normalizedDateFormatting];
-  let curDate = dayjs(inputValue.trim(), formats);
+  let curDate: dayjs.Dayjs;
+  if (isLongDateFormatting(normalizedDateFormatting)) {
+    // "1 juillet 2025": the month name is read in the UI language, then French, then English
+    const wallClock = parseLongDateString(inputValue, formats, { strict: false });
+    if (!wallClock) return null;
+    curDate = dayjs(wallClock, 'YYYY-MM-DD HH:mm');
+  } else {
+    curDate = dayjs(inputValue.trim(), formats);
+  }
   const isValid = curDate.isValid();
 
   if (!isValid) return null;

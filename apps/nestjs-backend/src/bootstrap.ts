@@ -4,6 +4,7 @@ import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { getDateFormattingLocale } from '@teable/core';
 import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 import isPortReachable from 'is-port-reachable';
@@ -71,6 +72,8 @@ export async function bootstrap() {
   logger.log(`> Ready on http://${host}:${port}`);
   logger.log(`> System Time Zone: ${timeZone}`);
   logger.log(`> Current System Time: ${now.toString()}`);
+  // month names of long date formats rendered server side (env DATE_FORMATTING_LOCALE, default en)
+  logger.log(`> Date formatting locale: ${getDateFormattingLocale()}`);
 
   process.on('unhandledRejection', (reason: string, promise: Promise<unknown>) => {
     logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`);

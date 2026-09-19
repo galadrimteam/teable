@@ -35,6 +35,11 @@ const mapDateFormatMask = (format: string): string => {
       return 'MM';
     case 'DD':
       return 'DD';
+    // Long presets. TM = month name in the database's lc_time (English with the C locale of a stock image).
+    case 'D MMMM YYYY':
+      return 'FMDD TMMonth YYYY';
+    case 'MMMM D, YYYY':
+      return 'TMMonth FMDD, YYYY';
     default:
       return DEFAULT_DATE_MASK;
   }

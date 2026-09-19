@@ -1,4 +1,5 @@
 import type { DehydratedState } from '@tanstack/react-query';
+import { setDateFormattingLocale } from '@teable/core';
 import { ThemeProvider } from '@teable/next-themes';
 import type { IGetBaseVo } from '@teable/openapi';
 import { isObject, merge } from 'lodash';
@@ -35,6 +36,13 @@ export const AppProvider = (props: IAppProviderProps) => {
     shareId,
     maxSearchFieldCount,
   } = props;
+  // Month names of the long date presets ("1 juillet 2025") follow the UI language. Set during render, not in an
+  // effect, so that the first paint of the grid already uses it. Browser only: during SSR the setting is a
+  // process-wide value shared by concurrent requests (and the backend has its own default, DATE_FORMATTING_LOCALE).
+  useMemo(() => {
+    if (typeof window !== 'undefined') setDateFormattingLocale(lang);
+  }, [lang]);
+
   const value = useMemo(
     () => ({
       lang,

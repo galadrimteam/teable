@@ -116,6 +116,8 @@
         "day": "Día",
         "local": "Local",
         "friendly": "Amigable",
+        "long": "Larga",
+        "longMonthFirst": "Larga, mes primero",
         "us": "A NOSOTROS",
         "european": "europeo",
         "asia": "Asia",

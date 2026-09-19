@@ -178,6 +178,8 @@ describe('FieldFormattingSql', () => {
   it.each([
     { format: 'M/D/YYYY', expected: 'FMMM/FMDD/YYYY' },
     { format: 'D/M/YYYY', expected: 'FMDD/FMMM/YYYY' },
+    { format: 'D MMMM YYYY', expected: 'FMDD TMMonth YYYY' },
+    { format: 'MMMM D, YYYY', expected: 'TMMonth FMDD, YYYY' },
     { format: 'YYYY/MM/DD', expected: 'YYYY/MM/DD' },
     { format: 'YYYY-MM', expected: 'YYYY-MM' },
     { format: 'MM-DD', expected: 'MM-DD' },

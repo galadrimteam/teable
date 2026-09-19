@@ -4,7 +4,12 @@ import { plainToInstance } from 'class-transformer';
 import { FieldType, DbFieldType, CellValueType } from '../constant';
 import { FieldCore } from '../field';
 import type { ITimeZoneString } from '../formatting';
-import { DateFormattingPreset, defaultDatetimeFormatting, TimeFormatting } from '../formatting';
+import {
+  DateFormattingPreset,
+  defaultDatetimeFormatting,
+  setDateFormattingLocale,
+  TimeFormatting,
+} from '../formatting';
 import type { IDateFieldOptions } from './date-option.schema';
 import { DateFieldCore } from './date.field';
 
@@ -108,6 +113,53 @@ describe('DateFieldCore', () => {
       },
     });
     expect(usField.convertStringToCellValue('5/1/2024 06:50')).toBe('2024-05-01T06:50:00.000Z');
+  });
+
+  it('should format and parse the long date presets', () => {
+    const longField = plainToInstance(DateFieldCore, {
+      ...json,
+      options: {
+        formatting: {
+          date: DateFormattingPreset.LongDMY,
+          time: TimeFormatting.None,
+          timeZone: 'Europe/Paris',
+        },
+      },
+    });
+    expect(longField.validateOptions().success).toBe(true);
+    expect(longField.cellValue2String('2025-06-30T22:00:00.000Z')).toBe('1 July 2025');
+    expect(longField.convertStringToCellValue('1 July 2025')).toBe('2025-06-30T22:00:00.000Z');
+    // French month names are always understood (paste / CSV import on a server whose default is English)
+    expect(longField.convertStringToCellValue('1 juillet 2025')).toBe('2025-06-30T22:00:00.000Z');
+    expect(longField.convertStringToCellValue('15 août 2025')).toBe('2025-08-14T22:00:00.000Z');
+    // ISO-like input still goes through the generic fallback
+    expect(longField.convertStringToCellValue('2025-07-01')).toBe('2025-06-30T22:00:00.000Z');
+    expect(longField.convertStringToCellValue('1 Smarch 2025')).toBeNull();
+
+    setDateFormattingLocale('fr');
+    try {
+      expect(longField.cellValue2String('2025-06-30T22:00:00.000Z')).toBe('1 juillet 2025');
+      // round trip of what the cell shows
+      expect(longField.convertStringToCellValue('1 juillet 2025')).toBe('2025-06-30T22:00:00.000Z');
+    } finally {
+      setDateFormattingLocale('en');
+    }
+
+    const longUsField = plainToInstance(DateFieldCore, {
+      ...json,
+      options: {
+        formatting: {
+          date: DateFormattingPreset.LongMDY,
+          time: TimeFormatting.Hour24,
+          timeZone: DEFAULT_TIME_ZONE,
+        },
+      },
+    });
+    expect(longUsField.cellValue2String('2025-07-01T14:30:00.000Z')).toBe('July 1, 2025 14:30');
+    expect(longUsField.convertStringToCellValue('July 1, 2025 14:30')).toBe(
+      '2025-07-01T14:30:00.000Z'
+    );
+    expect(longUsField.convertStringToCellValue('July 1, 2025')).toBe('2025-07-01T00:00:00.000Z');
   });
 
   it('should parse text to date with Chinese date format', () => {

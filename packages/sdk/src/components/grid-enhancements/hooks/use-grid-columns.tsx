@@ -11,6 +11,7 @@ import {
   ColorUtils,
   FieldType,
   checkButtonClickable,
+  getDateFormattingLocale,
 } from '@teable/core';
 import { useTheme } from '@teable/next-themes';
 import { keyBy } from 'lodash';
@@ -290,7 +291,8 @@ export const useCreateCellValue2GridDisplay = (
             const date = formatting.date;
             const time = formatting.time;
             const timeZone = formatting.timeZone;
-            const cacheKey = `${fieldId}-${cellValue}-${date}-${time}-${timeZone}`;
+            // the locale is part of the key: long date presets render month names in the UI language
+            const cacheKey = `${fieldId}-${cellValue}-${date}-${time}-${timeZone}-${getDateFormattingLocale()}`;
 
             if (cellValueStringCache.has(cacheKey)) {
               displayData = cellValueStringCache.get(cacheKey) || '';
