@@ -9,7 +9,9 @@ ARG BUILD_VERSION="1.0.0-alpha"
 FROM node:${NODE_VERSION}-bookworm AS deps
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && pnpm add npm-run-all2 zx -g
+# galadrim: pin pnpm to package.json's packageManager. This line runs before the sources are copied, so corepack
+# would fetch the latest pnpm (12.x in 2026-09), which no longer runs on this Node and breaks the build.
+RUN corepack enable && corepack prepare pnpm@9.13.0 --activate && pnpm add npm-run-all2 zx -g
 
 # Disabling some well-known postinstall scripts
 ENV HUSKY=0
