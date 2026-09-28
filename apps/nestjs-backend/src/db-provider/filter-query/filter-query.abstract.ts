@@ -49,11 +49,7 @@ export abstract class AbstractFilterQuery implements IFilterQueryInterface {
     return this.parseFilters(this.originQueryBuilder, this.filter);
   }
 
-  private parseFilters(
-    queryBuilder: Knex.QueryBuilder,
-    filter?: IFilter,
-    parentConjunction?: IConjunction
-  ): Knex.QueryBuilder {
+  private parseFilters(queryBuilder: Knex.QueryBuilder, filter?: IFilter): Knex.QueryBuilder {
     if (!filter || !filter.filterSet) {
       return queryBuilder;
     }
@@ -63,9 +59,11 @@ export abstract class AbstractFilterQuery implements IFilterQueryInterface {
         if ('fieldId' in filterItem) {
           this.parseFilter(filterBuilder, filterItem as IFilterItem, conjunction);
         } else {
-          filterBuilder = filterBuilder[parentConjunction || conjunction];
+          // Galadrim, backport of upstream f850aa60: a group is joined to its siblings by the conjunction of the group
+          // holding them. The grandparent's was used, so and(or(a, and(b, c))) became a AND (b AND c) from the third level on.
+          filterBuilder = filterBuilder[conjunction];
           filterBuilder.where((builder) => {
-            this.parseFilters(builder, filterItem as IFilterSet, conjunction);
+            this.parseFilters(builder, filterItem as IFilterSet);
           });
         }
       });
