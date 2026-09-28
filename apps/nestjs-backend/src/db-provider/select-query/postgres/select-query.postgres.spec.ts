@@ -1,7 +1,18 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-import { DbFieldType } from '@teable/core';
+import {
+  CellValueType,
+  DateFieldCore,
+  DbFieldType,
+  FieldType,
+  NumberFieldCore,
+  SingleLineTextFieldCore,
+  TableDomain,
+} from '@teable/core';
+import type { FieldCore } from '@teable/core';
+import knex from 'knex';
 import { describe, expect, it } from 'vitest';
 
+import { PostgresProvider } from '../../postgres.provider';
 import { getDefaultDatetimeParsePattern } from '../../utils/default-datetime-parse-pattern';
 import { SelectQueryPostgres } from './select-query.postgres';
 
@@ -80,6 +91,97 @@ describe('SelectQueryPostgres truthinessScore', () => {
     expect(sql).toContain('to_jsonb("__json_numeric")');
     expect(sql).toContain('jsonb_array_elements_text');
     expect(sql).toContain('double precision');
+  });
+});
+
+describe('SelectQueryPostgres boolean IF', () => {
+  const field = <T extends FieldCore>(
+    core: T,
+    id: string,
+    dbFieldName: string,
+    type: FieldType,
+    cellValueType: CellValueType,
+    options: T['options']
+  ): T => {
+    Object.assign(core, {
+      id,
+      name: id,
+      dbFieldName,
+      type,
+      cellValueType,
+      options,
+      isMultipleCellValue: false,
+      isLookup: false,
+    });
+    core.updateDbFieldType();
+    return core;
+  };
+
+  const table = new TableDomain({
+    id: 'tblBooleanIf',
+    name: 'Boolean IF',
+    dbTableName: 'public.tbl_boolean_if',
+    lastModifiedTime: '2026-09-28T00:00:00.000Z',
+    fields: [
+      field(
+        new DateFieldCore(),
+        'fldDate',
+        'Date_Dev',
+        FieldType.Date,
+        CellValueType.DateTime,
+        DateFieldCore.defaultOptions()
+      ),
+      field(
+        new NumberFieldCore(),
+        'fldNumber',
+        'Reel',
+        FieldType.Number,
+        CellValueType.Number,
+        NumberFieldCore.defaultOptions()
+      ),
+      field(
+        new SingleLineTextFieldCore(),
+        'fldText',
+        'Title',
+        FieldType.SingleLineText,
+        CellValueType.String,
+        SingleLineTextFieldCore.defaultOptions()
+      ),
+    ],
+  });
+
+  const provider = new PostgresProvider(knex({ client: 'pg' }));
+  const toSql = (expression: string, targetDbFieldType: DbFieldType) => {
+    const result = provider.convertFormulaToSelectQuery(expression, {
+      table,
+      selectionMap: new Map(),
+      tableAlias: 'main',
+      timeZone: 'UTC',
+      targetDbFieldType,
+    });
+    return typeof result === 'string' ? result : result.toQuery();
+  };
+
+  it.each([
+    ['IF({fldDate}, FALSE, TRUE)', / THEN \(FALSE\)::boolean ELSE \(TRUE\)::boolean END$/],
+    ['IF({fldNumber}, TRUE, FALSE)', / THEN \(TRUE\)::boolean ELSE \(FALSE\)::boolean END$/],
+    ['IF({fldText}, TRUE, FALSE)', / THEN \(TRUE\)::boolean ELSE \(FALSE\)::boolean END$/],
+    ['IF({fldText} = "x", TRUE, BLANK())', / THEN \(TRUE\)::boolean ELSE NULL END$/],
+    ['IF({fldText} = "x", BLANK(), FALSE)', / THEN NULL ELSE \(FALSE\)::boolean END$/],
+  ])('keeps the boolean branches of %s boolean', (expression, branches) => {
+    expect(toSql(expression, DbFieldType.Boolean)).toMatch(branches);
+  });
+
+  it('keeps numeric branches numeric', () => {
+    expect(toSql('IF({fldDate}, 1, 0)', DbFieldType.Real)).toMatch(
+      / THEN \(1\)::double precision ELSE \(0\)::double precision END$/
+    );
+  });
+
+  it('keeps a boolean mixed with a number on the numeric path', () => {
+    expect(toSql('IF({fldDate}, {fldNumber}, TRUE)', DbFieldType.Text)).toContain(
+      'THEN 1 ELSE 0 END)::double precision END'
+    );
   });
 });
 

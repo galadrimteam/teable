@@ -1597,6 +1597,19 @@ export class SelectQueryPostgres extends SelectQueryAbstract {
     const trueIsBlank = this.isEmptyStringLiteral(valueIfTrue) || this.isNullLiteral(valueIfTrue);
     const falseIsBlank =
       this.isEmptyStringLiteral(valueIfFalse) || this.isNullLiteral(valueIfFalse);
+    // Galadrim: without this, boolean branches take the numeric path below and come out as 0/1
+    // double precision, which Postgres refuses to cast to the formula's boolean column.
+    const trueIsBoolean = isBooleanLikeParam(this.getParamInfo(1));
+    const falseIsBoolean = isBooleanLikeParam(this.getParamInfo(2));
+    if (
+      (trueIsBoolean || falseIsBoolean) &&
+      (trueIsBoolean || trueIsBlank) &&
+      (falseIsBoolean || falseIsBlank)
+    ) {
+      const trueBranch = trueIsBlank ? 'NULL' : `(${valueIfTrue})::boolean`;
+      const falseBranch = falseIsBlank ? 'NULL' : `(${valueIfFalse})::boolean`;
+      return `CASE WHEN (${truthinessScore}) = 1 THEN ${trueBranch} ELSE ${falseBranch} END`;
+    }
     const targetType = (this.context as ISelectFormulaConversionContext | undefined)
       ?.targetDbFieldType;
     const resultIsDatetime =
