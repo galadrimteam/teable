@@ -9,3 +9,11 @@ export const outlineServiceUser = { email: 'outline@galadrim.local', name: 'Outl
 // Read on each call, not at boot: the e2e tests set them after the app has started.
 export const getGaladrimSecret = () => process.env.GALADRIM_SECRET || undefined;
 export const getGaladrimWebhookUrl = () => process.env.GALADRIM_WEBHOOK_URL || undefined;
+/** Where people who are not Teable admins are sent when they open Teable's own pages; unset keeps them in Teable. */
+export const getGaladrimOutlineUrl = () => process.env.GALADRIM_OUTLINE_URL || undefined;
+/** E-mails allowed into Teable's UI besides its instance admins, comma separated. */
+export const getGaladrimTeableAdmins = () =>
+  (process.env.GALADRIM_TEABLE_ADMINS || '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
